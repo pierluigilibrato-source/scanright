@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local previews and demo artifacts
+report-radiologo-demo*.pdf
+report-radiologo-demo-preview*.png
+scanright-preview*.png
