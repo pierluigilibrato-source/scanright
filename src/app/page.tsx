@@ -1,486 +1,151 @@
-"use client";
+import Link from "next/link";
 
-import { FormEvent, useMemo, useState } from "react";
-
-import { evaluateRmLombosacraleAppropriateness } from "@/lib/rm-lombosacrale-rules";
-import type { RmLombosacraleInput } from "@/lib/schema";
-
-type FormState = RmLombosacraleInput;
-
-const steps = [
-  "Dati iniziali",
-  "Dolore e durata",
-  "Deficit neurologico",
-  "Patologie sistemiche",
-  "Consulenze e interventi",
-  "Esami precedenti",
-  "Consenso e invio",
-] as const;
-
-const initialState: FormState = {
-  patientCode: "",
-  patientAge: 45,
-  radiologistEmail: "",
-  symptomsDurationWeeks: 2,
-  conservativeTreatmentWeeks: 0,
-  painNotImproving: "no",
-  traumaRecent: "no",
-  suspectCaudaEquina: "no",
-  feverOrInfectionSigns: "no",
-  unexplainedWeightLoss: "no",
-  steroidUseOrOsteoporosis: "no",
-  priorLumbarSurgery: "no",
-  neurologicalDeficit: "no",
-  neurologicalDeficitPredominance: undefined,
-  systemicPathologies: [],
-  systemicPathologiesOther: "",
-  specialistConsultations: [],
-  specialistConsultationsOther: "",
-  systemicPathologyDetails: {
-    oncologica: "",
-    infettiva: "",
-    reumatologica: "",
-    metabolica: "",
-    immunologica: "",
-    altra: "",
-  },
-  legPainReachLevel: "solo_lombare",
-  priorLumbarProcedureTypes: [],
-  priorLumbarProcedureOther: "",
-  previousImagingDone: "no",
-  previousImagingTypes: [],
-  previousImagingOther: "",
-  previousImagingSummary: "",
-  consentDataTransmission: false,
-  notes: "",
-};
-
-const yesNo = [
-  { value: "si", label: "Si" },
-  { value: "no", label: "No" },
-] as const;
-
-const systemicOptions = ["oncologica", "infettiva", "reumatologica", "metabolica", "immunologica", "altra"] as const;
-const specialistOptions = ["neurochirurgica", "ortopedica", "fisiatrica", "neurologica", "algologica", "altro"] as const;
-const previousExamOptions = ["radiografia", "tc", "rm", "ecografia", "scintigrafia", "altro"] as const;
-const procedureOptions = ["artrodesi", "discectomia", "laminectomia", "infiltrazioni", "altro"] as const;
-
-export default function Home() {
-  const [form, setForm] = useState<FormState>(initialState);
-  const [step, setStep] = useState(0);
-  const [simpleLanguage, setSimpleLanguage] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const preview = useMemo(() => evaluateRmLombosacraleAppropriateness(form), [form]);
-  const t = (standard: string, simple: string) =>
-    simpleLanguage ? simple : standard;
-
-  const toggle = (
-    key:
-      | "systemicPathologies"
-      | "specialistConsultations"
-      | "previousImagingTypes"
-      | "priorLumbarProcedureTypes",
-    value: string,
-  ) => {
-    setForm((prev) => {
-      const arr = prev[key] as string[];
-      return {
-        ...prev,
-        [key]: arr.includes(value)
-          ? arr.filter((item) => item !== value)
-          : [...arr, value],
-      };
-    });
-  };
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (step < steps.length - 1) return;
-
-    setIsSubmitting(true);
-    setMessage("");
-    try {
-      const response = await fetch("/api/intake", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error ?? "Errore invio questionario");
-      }
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `report-rm-lombosacrale-${form.patientCode || "paziente"}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      setMessage("Questionario inviato e report PDF generato.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Errore inatteso");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
-      <header className="rounded-2xl border border-sky-100 bg-linear-to-r from-sky-50 to-white p-6">
-        <h1 className="text-2xl font-bold text-zinc-900">
-          ScanRight - Questionario RM lombosacrale
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600">
-          {t(
-            "Percorso guidato per il paziente con spiegazioni semplici e dettagli clinici.",
-            "Compila passo per passo: domande chiare e facili da capire.",
-          )}
-        </p>
-        <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm">
-          <input
-            type="checkbox"
-            checked={simpleLanguage}
-            onChange={(e) => setSimpleLanguage(e.target.checked)}
-          />
-          Modalita linguaggio ultra-semplice
-        </label>
-      </header>
+    <main className="relative overflow-hidden bg-zinc-50 pb-14">
+      <div className="pointer-events-none absolute -top-24 left-0 h-72 w-72 rounded-full bg-cyan-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-44 h-80 w-80 rounded-full bg-sky-300/35 blur-3xl" />
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs">
-          <div>
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-semibold text-zinc-700">
-                Step {step + 1} di {steps.length}
+      <div className="mx-auto w-full max-w-6xl px-6 pt-12">
+        <section className="relative overflow-hidden rounded-[2rem] border border-cyan-100 bg-linear-to-r from-cyan-600 to-sky-700 p-8 text-white shadow-xl sm:p-10">
+          <div className="pointer-events-none absolute -left-14 -top-14 h-44 w-44 rounded-full bg-white/15" />
+          <div className="pointer-events-none absolute -bottom-16 right-1/4 h-48 w-48 rounded-full bg-white/10" />
+
+          <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <span className="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                Piattaforma anamnestica radiologica
               </span>
-              <span className="text-zinc-500">{steps[step]}</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-zinc-100">
-              <div
-                className="h-2 rounded-full bg-sky-700 transition-all"
-                style={{ width: `${((step + 1) / steps.length) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          {step === 0 && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-medium">Codice paziente
-                <input className="mt-1 w-full rounded-lg border px-3 py-2" value={form.patientCode} onChange={(e) => setForm((p) => ({ ...p, patientCode: e.target.value }))} required />
-              </label>
-              <label className="text-sm font-medium">{t("Eta", "Quanti anni hai?")}
-                <input className="mt-1 w-full rounded-lg border px-3 py-2" type="number" min={1} max={120} value={form.patientAge} onChange={(e) => setForm((p) => ({ ...p, patientAge: Number(e.target.value) }))} required />
-              </label>
-              <label className="text-sm font-medium sm:col-span-2">
-                {t("Email radiologo", "Email del medico radiologo")}
-                <input className="mt-1 w-full rounded-lg border px-3 py-2" type="email" value={form.radiologistEmail} onChange={(e) => setForm((p) => ({ ...p, radiologistEmail: e.target.value }))} required />
-              </label>
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-4">
-              <label className="block text-sm font-medium">
-                {t(
-                  "Durata sintomi (settimane)",
-                  "Da quante settimane hai dolore o fastidio?",
-                )}
-                <input className="mt-1 w-full rounded-lg border px-3 py-2" type="number" min={0} max={520} value={form.symptomsDurationWeeks} onChange={(e) => setForm((p) => ({ ...p, symptomsDurationWeeks: Number(e.target.value) }))} required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t(
-                  "Durata terapia conservativa (settimane)",
-                  "Da quante settimane stai facendo cure (farmaci/fisio/esercizi)?",
-                )}
-                <input className="mt-1 w-full rounded-lg border px-3 py-2" type="number" min={0} max={104} value={form.conservativeTreatmentWeeks} onChange={(e) => setForm((p) => ({ ...p, conservativeTreatmentWeeks: Number(e.target.value) }))} required />
-              </label>
-              <div className="rounded-xl border p-4">
-                <p className="text-sm font-semibold">
-                  {t(
-                    "Il dolore migliora con la terapia?",
-                    "Con le cure stai meglio?",
-                  )}
-                </p>
-                <div className="mt-2 flex gap-4">
-                  {yesNo.map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-2 text-sm">
-                      <input type="radio" checked={form.painNotImproving === opt.value} onChange={() => setForm((p) => ({ ...p, painNotImproving: opt.value }))} />
-                      {opt.value === "si" ? "No, non migliora" : "Si, migliora"}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <label className="block text-sm font-medium">
-                {t(
-                  "Fino a quale livello dell'arto inferiore arriva il dolore?",
-                  "Fino a dove arriva il dolore nella gamba?",
-                )}
-                <select className="mt-1 w-full rounded-lg border px-3 py-2" value={form.legPainReachLevel} onChange={(e) => setForm((p) => ({ ...p, legPainReachLevel: e.target.value as FormState["legPainReachLevel"] }))}>
-                  <option value="solo_lombare">Solo lombare</option>
-                  <option value="gluteo">Gluteo</option>
-                  <option value="coscia">Coscia</option>
-                  <option value="ginocchio">Ginocchio</option>
-                  <option value="polpaccio">Polpaccio</option>
-                  <option value="caviglia">Caviglia</option>
-                  <option value="piede">Piede</option>
-                  <option value="dita">Dita del piede</option>
-                </select>
-              </label>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="rounded-xl border p-4">
-              <p className="text-sm font-semibold">
-                {t("Deficit neurologico", "Debolezza o perdita di sensibilita alla gamba")}
+              <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-5xl">
+                ScanRight
+              </h1>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">
+                ScanRight &egrave; la piattaforma digitale progettata per
+                raccogliere e organizzare i dati anamnestici in modo strutturato,
+                con un flusso intuitivo e un output clinicamente utilizzabile.
               </p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t(
-                  "Debolezza, perdita sensibilita o difficolta motoria.",
-                  "Per esempio: gamba meno forte, formicolio, difficolta a muovere il piede.",
-                )}
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">
+                La finalit&agrave; &egrave; migliorare efficacia ed efficienza
+                diagnostica: per il paziente, con un percorso pi&ugrave; chiaro e
+                guidato; per gli operatori, con informazioni complete, coerenti e
+                immediatamente disponibili.
               </p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {[
-                  { value: "no", label: "No" },
-                  { value: "gamba_destra", label: "Gamba destra" },
-                  { value: "gamba_sinistra", label: "Gamba sinistra" },
-                  { value: "entrambe", label: "Entrambe" },
-                ].map((item) => (
-                  <label key={item.value} className="flex items-center gap-2 text-sm">
-                    <input type="radio" checked={form.neurologicalDeficit === item.value} onChange={() => setForm((p) => ({ ...p, neurologicalDeficit: item.value as FormState["neurologicalDeficit"] }))} />
-                    {item.label}
-                  </label>
-                ))}
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-sky-800 transition hover:bg-sky-50"
+                >
+                  Accedi alla piattaforma
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Vai alla dashboard
+                </Link>
               </div>
-              {form.neurologicalDeficit === "entrambe" && (
-                <div className="mt-3">
-                  <p className="text-sm">Maggiormente a destra o sinistra?</p>
-                  <div className="mt-2 flex gap-4">
+            </div>
+
+            <div className="relative mx-auto w-full max-w-sm">
+              <div className="rounded-3xl border border-white/25 bg-white/10 p-4 backdrop-blur">
+                <div className="rounded-2xl bg-white p-4 text-zinc-800 shadow-lg">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">
+                    Flusso guidato
+                  </p>
+                  <p className="mt-2 text-sm font-semibold">
+                    Questionario anamnestico strutturato
+                  </p>
+                  <div className="mt-3 space-y-2">
                     {[
-                      { value: "destra", label: "Destra" },
-                      { value: "sinistra", label: "Sinistra" },
-                      { value: "uguale", label: "Uguale" },
+                      "Dati paziente e contesto clinico",
+                      "Sintomi, red flags e storia medica",
+                      "Report pronto per l'operatore",
                     ].map((item) => (
-                      <label key={item.value} className="flex items-center gap-2 text-sm">
-                        <input type="radio" checked={form.neurologicalDeficitPredominance === item.value} onChange={() => setForm((p) => ({ ...p, neurologicalDeficitPredominance: item.value as FormState["neurologicalDeficitPredominance"] }))} />
-                        {item.label}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="rounded-xl border p-4">
-              <p className="text-sm font-semibold">
-                {t("Patologie sistemiche", "Altre malattie importanti")}
-              </p>
-              <p className="mt-1 text-xs text-zinc-500">
-                {t(
-                  "Per ogni voce selezionata scrivere quale patologia (esempio: oncologica K mammella; reumatologica artrite reumatoide).",
-                  "Se selezioni una voce, scrivi quale malattia hai (esempio: tumore al seno, artrite reumatoide).",
-                )}
-              </p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {systemicOptions.map((item) => (
-                  <label key={item} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={form.systemicPathologies.includes(item)} onChange={() => toggle("systemicPathologies", item)} />
-                    {item}
-                  </label>
-                ))}
-              </div>
-              {form.systemicPathologies.map((item) => (
-                <label key={item} className="mt-3 block text-sm font-medium">
-                  Dettaglio {item}
-                  <input className="mt-1 w-full rounded-lg border px-3 py-2" value={form.systemicPathologyDetails[item] || ""} onChange={(e) => setForm((p) => ({ ...p, systemicPathologyDetails: { ...p.systemicPathologyDetails, [item]: e.target.value } }))} required />
-                </label>
-              ))}
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-4">
-              <div className="rounded-xl border p-4">
-                <p className="text-sm font-semibold">
-                  {t(
-                    "Consulenze specialistiche eseguite",
-                    "Visite specialistiche gia fatte",
-                  )}
-                </p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {specialistOptions.map((item) => (
-                    <label key={item} className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={form.specialistConsultations.includes(item)} onChange={() => toggle("specialistConsultations", item)} />
-                      {item}
-                    </label>
-                  ))}
-                </div>
-                {form.specialistConsultations.includes("altro") && (
-                  <label className="mt-3 block text-sm font-medium">
-                    Specificare altro
-                    <input className="mt-1 w-full rounded-lg border px-3 py-2" value={form.specialistConsultationsOther} onChange={(e) => setForm((p) => ({ ...p, specialistConsultationsOther: e.target.value }))} required />
-                  </label>
-                )}
-              </div>
-              <div className="rounded-xl border p-4">
-                <p className="text-sm font-semibold">
-                  {t(
-                    "Interventi/procedure lombari pregresse",
-                    "Interventi o infiltrazioni gia fatti alla schiena",
-                  )}
-                </p>
-                <div className="mt-2 flex gap-4">
-                  {yesNo.map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-2 text-sm">
-                      <input type="radio" checked={form.priorLumbarSurgery === opt.value} onChange={() => setForm((p) => ({ ...p, priorLumbarSurgery: opt.value }))} />
-                      {opt.label}
-                    </label>
-                  ))}
-                </div>
-                {form.priorLumbarSurgery === "si" && (
-                  <div className="mt-3">
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {procedureOptions.map((item) => (
-                        <label key={item} className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" checked={form.priorLumbarProcedureTypes.includes(item)} onChange={() => toggle("priorLumbarProcedureTypes", item)} />
-                          {item}
-                        </label>
-                      ))}
-                    </div>
-                    {form.priorLumbarProcedureTypes.includes("altro") && (
-                      <label className="mt-3 block text-sm font-medium">
-                        Specificare altro
-                        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={form.priorLumbarProcedureOther} onChange={(e) => setForm((p) => ({ ...p, priorLumbarProcedureOther: e.target.value }))} required />
-                      </label>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="rounded-xl border p-4">
-              <p className="text-sm font-semibold">
-                {t("Esami precedenti", "Esami gia fatti in passato")}
-              </p>
-              <div className="mt-2 flex gap-4">
-                {yesNo.map((opt) => (
-                  <label key={opt.value} className="flex items-center gap-2 text-sm">
-                    <input type="radio" checked={form.previousImagingDone === opt.value} onChange={() => setForm((p) => ({ ...p, previousImagingDone: opt.value }))} />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-              {form.previousImagingDone === "si" && (
-                <div className="mt-3 space-y-3">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {previousExamOptions.map((item) => (
-                      <label key={item} className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" checked={form.previousImagingTypes.includes(item)} onChange={() => toggle("previousImagingTypes", item)} />
+                      <div
+                        key={item}
+                        className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700"
+                      >
                         {item}
-                      </label>
-                    ))}
-                  </div>
-                  {form.previousImagingTypes.includes("altro") && (
-                    <label className="block text-sm font-medium">
-                      Specificare altro esame
-                      <input className="mt-1 w-full rounded-lg border px-3 py-2" value={form.previousImagingOther} onChange={(e) => setForm((p) => ({ ...p, previousImagingOther: e.target.value }))} required />
-                    </label>
-                  )}
-                  <label className="block text-sm font-medium">
-                    {t("Breve esito", "Scrivi in breve il risultato")}
-                    <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={form.previousImagingSummary} onChange={(e) => setForm((p) => ({ ...p, previousImagingSummary: e.target.value }))} />
-                  </label>
-                </div>
-              )}
-            </div>
-          )}
-
-          {step === 6 && (
-            <div className="space-y-4">
-              {[
-                { key: "traumaRecent", label: "Trauma recente" },
-                { key: "suspectCaudaEquina", label: "Sospetta cauda equina" },
-                { key: "feverOrInfectionSigns", label: "Febbre o segni infettivi" },
-                { key: "unexplainedWeightLoss", label: "Calo ponderale inspiegato" },
-                { key: "steroidUseOrOsteoporosis", label: "Steroidi/osteoporosi" },
-              ].map((item) => (
-                <div key={item.key} className="rounded-xl border p-4">
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  <div className="mt-2 flex gap-4">
-                    {yesNo.map((opt) => (
-                      <label key={opt.value} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          checked={form[item.key as keyof FormState] === opt.value}
-                          onChange={() => setForm((p) => ({ ...p, [item.key]: opt.value }))}
-                        />
-                        {opt.label}
-                      </label>
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
-              <label className="block text-sm font-medium">
-                {t("Note aggiuntive", "Altre informazioni utili")}
-                <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={4} value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} />
-              </label>
-              <label className="flex items-start gap-3 rounded-xl border bg-zinc-50 p-4 text-sm">
-                <input type="checkbox" className="mt-0.5" checked={form.consentDataTransmission} onChange={(e) => setForm((p) => ({ ...p, consentDataTransmission: e.target.checked }))} required />
-                <span>
-                  {t(
-                    "Presto consenso informato alla trasmissione dei dati al radiologo.",
-                    "Autorizzo l'invio dei miei dati clinici al radiologo per preparare l'esame.",
-                  )}
-                </span>
-              </label>
+              </div>
+              <div className="absolute -right-4 -top-4 rounded-full bg-white px-3 py-1 text-xs font-semibold text-sky-700 shadow-md">
+                + Precisione
+              </div>
+              <div className="absolute -bottom-4 -left-4 rounded-full bg-white px-3 py-1 text-xs font-semibold text-cyan-700 shadow-md">
+                + Velocit&agrave;
+              </div>
             </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <button type="button" className="rounded-lg border px-4 py-2 text-sm disabled:opacity-50" disabled={step === 0 || isSubmitting} onClick={() => setStep((s) => Math.max(0, s - 1))}>
-              Indietro
-            </button>
-            {step < steps.length - 1 ? (
-              <button type="button" className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white" onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}>
-                Avanti
-              </button>
-            ) : (
-              <button type="submit" className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={isSubmitting || !form.consentDataTransmission}>
-                {isSubmitting ? "Generazione report..." : "Invia e genera PDF"}
-              </button>
-            )}
           </div>
+        </section>
 
-          {message ? <p className="rounded-lg bg-zinc-100 px-3 py-2 text-sm">{message}</p> : null}
-        </form>
+        <section className="mt-8 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+          <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-zinc-900">Perch&eacute; ScanRight</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-700">
+              Un ambiente unico per standardizzare l&apos;anamnesi, ridurre
+              dispersioni informative e supportare una gestione pi&ugrave; fluida del
+              percorso diagnostico.
+            </p>
+            <ul className="mt-5 space-y-3 text-sm text-zinc-700">
+              <li className="rounded-xl bg-cyan-50 px-3 py-2">
+                Dati raccolti in forma chiara e confrontabile.
+              </li>
+              <li className="rounded-xl bg-cyan-50 px-3 py-2">
+                Compilazione guidata per ridurre errori e omissioni.
+              </li>
+              <li className="rounded-xl bg-cyan-50 px-3 py-2">
+                Operativit&agrave; pi&ugrave; rapida per il team sanitario.
+              </li>
+            </ul>
+          </article>
 
-        <aside className="h-fit rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs lg:sticky lg:top-6">
-          <p className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-            Anteprima report
-          </p>
-          <h3 className="mt-2 text-lg font-semibold text-zinc-900">
-            RM lombosacrale - {form.patientCode || "Paziente non impostato"}
-          </h3>
-          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
-              Valutazione automatica
-            </p>
-            <p className="mt-1 text-base font-bold text-sky-900">
-              {preview.level.toUpperCase()}
-            </p>
-            <p className="text-sm text-sky-800">Score: {preview.score}/100</p>
-            <p className="mt-2 text-sm text-zinc-700">{preview.recommendation}</p>
-          </div>
-        </aside>
-      </section>
+          <article className="relative overflow-hidden rounded-3xl border border-sky-100 bg-linear-to-br from-sky-50 to-cyan-100 p-6 shadow-sm">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/60" />
+            <h2 className="text-lg font-bold text-zinc-900">
+              Valore per pazienti e operatori
+            </h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white p-4 shadow-xs">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+                  Paziente
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-700">
+                  Percorso comprensibile, tempi ottimizzati e maggiore chiarezza
+                  nella raccolta delle informazioni cliniche.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white p-4 shadow-xs">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+                  Operatore
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-700">
+                  Visione pi&ugrave; completa del quadro anamnestico, con dati
+                  pronti all&apos;uso per decisioni pi&ugrave; rapide.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-700 text-xs font-semibold text-white">
+                SR
+              </span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-cyan-600 text-xs font-semibold text-white">
+                CL
+              </span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-semibold text-white">
+                MD
+              </span>
+              <p className="ml-2 text-xs text-zinc-600">
+                Team clinico allineato su una base dati condivisa.
+              </p>
+            </div>
+          </article>
+        </section>
+      </div>
     </main>
   );
 }
