@@ -44,3 +44,5 @@ next-env.d.ts
 report-radiologo-demo*.pdf
 report-radiologo-demo-preview*.png
 scanright-preview*.png
+
+.vercel
