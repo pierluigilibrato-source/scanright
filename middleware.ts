@@ -6,7 +6,8 @@ import { SESSION_COOKIE_NAME, readSessionToken } from "@/lib/auth";
 function isProtectedPath(pathname: string) {
   return (
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/questionari")
+    pathname.startsWith("/questionari") ||
+    pathname.startsWith("/worklist")
   );
 }
 
@@ -29,5 +30,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/questionari/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/questionari/:path*", "/worklist/:path*", "/login"],
 };

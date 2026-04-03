@@ -38,13 +38,21 @@ export default function DashboardPage() {
             Seleziona la metodica radiologica per iniziare la raccolta anamnestica.
           </p>
         </div>
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
-        >
-          {isLoggingOut ? "Uscita..." : "Logout"}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/worklist"
+            className="rounded-lg border border-sky-600 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 hover:bg-sky-100"
+          >
+            Worklist radiologica
+          </Link>
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
+          >
+            {isLoggingOut ? "Uscita..." : "Logout"}
+          </button>
+        </div>
       </header>
 
       <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs">
