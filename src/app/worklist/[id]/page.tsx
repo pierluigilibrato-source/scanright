@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import type { RmLombosacraleInput } from "@/lib/schema";
 
@@ -86,7 +86,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs">
       <h3 className="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">{title}</h3>
