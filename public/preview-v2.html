@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScanRight — Preview v2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f4f4f5; }
+    .tab-btn { cursor:pointer; padding:10px 20px; border-radius:8px 8px 0 0; font-weight:600; font-size:13px; border:1px solid #e4e4e7; border-bottom:none; background:#f4f4f5; color:#71717a; }
+    .tab-btn.active { background:#fff; color:#0c4a6e; border-bottom:1px solid #fff; margin-bottom:-1px; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- NAV TABS -->
+<div class="max-w-6xl mx-auto px-6 pt-8">
+  <div class="flex gap-1 border-b border-zinc-200 mb-0">
+    <button class="tab-btn active" onclick="showTab('worklist')">Worklist radiologica</button>
+    <button class="tab-btn" onclick="showTab('detail')">Dettaglio report</button>
+    <button class="tab-btn" onclick="showTab('form-end')">Fine questionario</button>
+    <button class="tab-btn" onclick="showTab('dashboard')">Dashboard</button>
+  </div>
+</div>
+
+<!-- ===================== TAB 1: WORKLIST ===================== -->
+<div id="tab-worklist" class="tab-content active">
+  <main class="mx-auto w-full max-w-6xl px-6 py-8">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div>
+        <div class="flex items-center gap-3">
+          <a href="#" class="text-sm text-sky-700 hover:underline">← Dashboard</a>
+          <span class="text-zinc-300">/</span>
+          <span class="text-sm font-medium text-zinc-700">Worklist radiologica</span>
+        </div>
+        <h1 class="mt-2 text-2xl font-bold text-zinc-900">Worklist radiologica</h1>
+        <p class="mt-1 text-sm text-zinc-500">Richieste di RM lombosacrale ordinate per urgenza e score clinico.</p>
+      </div>
+      <button class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Logout</button>
+    </header>
+
+    <!-- Legend -->
+    <div class="mt-5 flex flex-wrap gap-3 items-center">
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-red-600 text-white">Emergenza</span>
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">Urgente differibile</span>
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Da valutare</span>
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-zinc-100 text-zinc-500 border border-zinc-200">Non urgente</span>
+      <span class="text-xs text-zinc-400 ml-1">— ordinamento: emergenza prima, poi score decrescente</span>
+    </div>
+
+    <!-- Table -->
+    <section class="mt-4 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <th class="px-4 py-3">Urgenza</th>
+              <th class="px-4 py-3">Appropriatezza</th>
+              <th class="px-4 py-3">Codice paziente</th>
+              <th class="px-4 py-3 text-center">Score</th>
+              <th class="px-4 py-3">Raccomandazione</th>
+              <th class="px-4 py-3">Data</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100">
+            <!-- Row 1: Emergenza -->
+            <tr class="hover:bg-zinc-50 transition-colors border-l-4 border-l-red-400">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-600 text-white">Emergenza</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800 border border-red-200">Appropriata</span>
+              </td>
+              <td class="px-4 py-3 font-mono font-semibold text-zinc-800">RIS-2024-0041</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-block w-10 rounded-full py-0.5 text-center text-xs font-bold bg-red-100 text-red-700">95</span>
+              </td>
+              <td class="max-w-xs px-4 py-3 text-xs text-zinc-600">
+                <span class="line-clamp-2">Eseguire RM lombosacrale con priorità clinica; correlare con quadro neurologico e laboratoristico.</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">07/04/2026, 09:14</td>
+              <td class="px-4 py-3">
+                <button onclick="showTab('detail')" class="rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 whitespace-nowrap">Vedi report</button>
+              </td>
+            </tr>
+            <!-- Row 2: Urgente differibile -->
+            <tr class="hover:bg-zinc-50 transition-colors border-l-4 border-l-red-400">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">Urgente differibile</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800 border border-red-200">Appropriata</span>
+              </td>
+              <td class="px-4 py-3 font-mono font-semibold text-zinc-800">RIS-2024-0038</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-block w-10 rounded-full py-0.5 text-center text-xs font-bold bg-red-100 text-red-700">75</span>
+              </td>
+              <td class="max-w-xs px-4 py-3 text-xs text-zinc-600">
+                <span class="line-clamp-2">RM lombosacrale indicata secondo criteri clinici di persistenza e mancata risposta terapeutica.</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">06/04/2026, 14:30</td>
+              <td class="px-4 py-3">
+                <button class="rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 whitespace-nowrap">Vedi report</button>
+              </td>
+            </tr>
+            <!-- Row 3: Da valutare -->
+            <tr class="hover:bg-zinc-50 transition-colors border-l-4 border-l-amber-400">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Da valutare</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">Da rivalutare</span>
+              </td>
+              <td class="px-4 py-3 font-mono font-semibold text-zinc-800">RIS-2024-0039</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-block w-10 rounded-full py-0.5 text-center text-xs font-bold bg-amber-100 text-amber-700">55</span>
+              </td>
+              <td class="max-w-xs px-4 py-3 text-xs text-zinc-600">
+                <span class="line-clamp-2">Valutare prosecuzione terapia conservativa o rivalutazione specialistica prima dell'imaging.</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">05/04/2026, 11:20</td>
+              <td class="px-4 py-3">
+                <button class="rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 whitespace-nowrap">Vedi report</button>
+              </td>
+            </tr>
+            <!-- Row 4: Non urgente -->
+            <tr class="hover:bg-zinc-50 transition-colors border-l-4 border-l-zinc-300">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-zinc-100 text-zinc-500 border border-zinc-200">Non urgente</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200">Non appropriata</span>
+              </td>
+              <td class="px-4 py-3 font-mono font-semibold text-zinc-800">RIS-2024-0037</td>
+              <td class="px-4 py-3 text-center">
+                <span class="inline-block w-10 rounded-full py-0.5 text-center text-xs font-bold bg-zinc-100 text-zinc-600">20</span>
+              </td>
+              <td class="max-w-xs px-4 py-3 text-xs text-zinc-600">
+                <span class="line-clamp-2">In assenza di red flags e con sintomi recenti, privilegiare approccio conservativo e follow-up clinico.</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">04/04/2026, 08:55</td>
+              <td class="px-4 py-3">
+                <button class="rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 whitespace-nowrap">Vedi report</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <p class="mt-4 text-center text-xs text-zinc-400">4 richieste totali</p>
+  </main>
+</div>
+
+<!-- ===================== TAB 2: DETTAGLIO REPORT ===================== -->
+<div id="tab-detail" class="tab-content">
+  <main class="mx-auto w-full max-w-4xl px-6 py-8">
+    <header class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div>
+        <div class="flex items-center gap-3 text-sm">
+          <a href="#" class="text-sky-700 hover:underline">Dashboard</a>
+          <span class="text-zinc-300">/</span>
+          <button onclick="showTab('worklist')" class="text-sky-700 hover:underline">Worklist</button>
+          <span class="text-zinc-300">/</span>
+          <span class="text-zinc-700 font-medium">RIS-2024-0041</span>
+        </div>
+        <h1 class="mt-2 text-2xl font-bold text-zinc-900">Report RM lombosacrale</h1>
+        <p class="mt-0.5 text-sm text-zinc-500">Registrato il 07/04/2026, 09:14</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">⬇ Scarica PDF</button>
+        <button class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Logout</button>
+      </div>
+    </header>
+
+    <div class="mt-6 space-y-4">
+      <!-- Valutazione -->
+      <div class="rounded-2xl border border-sky-200 bg-sky-50 p-5">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="rounded-full px-3 py-1 text-sm font-bold bg-red-600 text-white">Emergenza</span>
+          <span class="rounded-full px-3 py-1 text-sm font-semibold bg-red-100 text-red-800 border border-red-200">Appropriata</span>
+          <span class="text-sm font-semibold text-sky-900">Score: 95/100</span>
+        </div>
+        <p class="mt-3 text-sm font-medium text-zinc-800">
+          Eseguire RM lombosacrale con priorità clinica; correlare con quadro neurologico e laboratoristico.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="inline-flex items-center rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-xs text-red-700">⚠ Sospetta sindrome della cauda equina</span>
+          <span class="inline-flex items-center rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-xs text-red-700">⚠ Deficit neurologico agli arti inferiori</span>
+        </div>
+      </div>
+
+      <!-- Dati paziente -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Dati paziente e contesto</h3>
+        <div class="space-y-0">
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Codice paziente</span><span class="text-zinc-800 font-mono font-semibold">RIS-2024-0041</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Età</span><span class="text-zinc-800">58 anni</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Email radiologo</span><span class="text-zinc-800">radiologo@ospedale.it</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Durata sintomi</span><span class="text-zinc-800">12 settimane</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Terapia conservativa</span><span class="text-zinc-800">8 settimane</span></div>
+          <div class="flex gap-3 py-2 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Dolore non in miglioramento</span><span class="text-zinc-800">Sì</span></div>
+        </div>
+      </div>
+
+      <!-- Indicatori clinici -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Indicatori clinici</h3>
+        <div class="space-y-0">
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Trauma recente</span><span class="text-zinc-800">No</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Sospetta cauda equina</span><span class="text-zinc-800 font-semibold text-red-700">Sì</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Febbre o segni infettivi</span><span class="text-zinc-800">No</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Calo ponderale inspiegato</span><span class="text-zinc-800">No</span></div>
+          <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Deficit neurologico</span><span class="text-zinc-800 font-semibold text-red-700">Presente a destra</span></div>
+          <div class="flex gap-3 py-2 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Irradiazione dolore</span><span class="text-zinc-800">Fino al piede</span></div>
+        </div>
+      </div>
+
+      <!-- Patologie sistemiche -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Patologie sistemiche</h3>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="inline-flex items-center rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-semibold text-red-700">Oncologica</span>
+        </div>
+        <div class="flex gap-3 py-2 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Dettaglio oncologica</span><span class="text-zinc-800">K mammella in follow-up</span></div>
+      </div>
+
+      <!-- Consulenze -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Consulenze specialistiche</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center rounded-full bg-sky-50 border border-sky-200 px-3 py-1 text-xs font-semibold text-sky-700">Neurologica</span>
+          <span class="inline-flex items-center rounded-full bg-sky-50 border border-sky-200 px-3 py-1 text-xs font-semibold text-sky-700">Neurochirurgica</span>
+        </div>
+      </div>
+
+      <!-- Esami precedenti -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Esami precedenti</h3>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="inline-flex items-center rounded-full bg-zinc-100 border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700">Radiografia</span>
+          <span class="inline-flex items-center rounded-full bg-zinc-100 border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700">TC</span>
+        </div>
+        <div class="flex gap-3 py-2 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Referto disponibile</span><span class="text-zinc-800">Rx colonna lombare: riduzione spazio discale L4-L5. TC: protrusione discale L4-L5 con compressione radicolare destra.</span></div>
+      </div>
+
+      <!-- Consenso -->
+      <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Consenso e note</h3>
+        <div class="flex gap-3 py-2 border-b border-zinc-100 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Consenso dati</span><span class="text-green-700 font-semibold">✓ Acquisito</span></div>
+        <div class="flex gap-3 py-2 text-sm"><span class="w-52 shrink-0 font-medium text-zinc-500">Note cliniche</span><span class="text-zinc-800">Peggioramento nell'ultima settimana con comparsa di difficoltà alla minzione.</span></div>
+      </div>
+    </div>
+
+    <div class="mt-6 flex gap-3">
+      <button onclick="showTab('worklist')" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">← Torna alla worklist</button>
+      <button class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">⬇ Scarica PDF</button>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== TAB 3: FINE QUESTIONARIO ===================== -->
+<div id="tab-form-end" class="tab-content">
+  <main class="mx-auto w-full max-w-2xl px-6 py-16">
+    <div class="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm text-center">
+      <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+        <svg class="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h2 class="text-xl font-bold text-zinc-900">Questionario inviato con successo</h2>
+      <p class="mt-2 text-sm text-zinc-500">Il report PDF è stato generato e scaricato automaticamente. Puoi ritrovarlo nella worklist in qualsiasi momento.</p>
+
+      <div class="mt-6 rounded-xl border border-sky-100 bg-sky-50 p-4 text-left">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-sky-700">Valutazione</p>
+            <div class="mt-2 flex items-center gap-2">
+              <span class="rounded-full px-3 py-1 text-sm font-bold bg-orange-100 text-orange-800 border border-orange-200">Urgente differibile</span>
+              <span class="rounded-full px-3 py-1 text-sm font-semibold bg-red-100 text-red-800 border border-red-200">Appropriata</span>
+              <span class="text-sm font-semibold text-sky-900">Score 75/100</span>
+            </div>
+          </div>
+        </div>
+        <p class="mt-3 text-sm text-zinc-700">RM lombosacrale indicata secondo criteri clinici di persistenza e mancata risposta terapeutica.</p>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+        <button class="rounded-lg bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800">⬇ Riscaricare PDF</button>
+        <button onclick="showTab('worklist')" class="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Vedi Worklist</button>
+        <button class="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Nuovo questionario</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== TAB 4: DASHBOARD ===================== -->
+<div id="tab-dashboard" class="tab-content">
+  <main class="mx-auto w-full max-w-5xl px-6 py-10">
+    <header class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-bold uppercase tracking-widest text-sky-700">ScanRight</span>
+        </div>
+        <h1 class="text-2xl font-bold text-zinc-900">Dashboard operatore</h1>
+        <p class="mt-1 text-sm text-zinc-500">Seleziona il tipo di esame per avviare il questionario.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="showTab('worklist')" class="rounded-lg border border-sky-600 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 hover:bg-sky-100">Worklist radiologica</button>
+        <button class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Logout</button>
+      </div>
+    </header>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-2xl border-2 border-sky-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+        <div class="flex items-start justify-between">
+          <div>
+            <span class="inline-flex items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-800">Attivo</span>
+            <h2 class="mt-3 text-lg font-bold text-zinc-900">RM Lombosacrale</h2>
+            <p class="mt-1 text-sm text-zinc-500">Valutazione appropriatezza per lombalgia, radicolopatia e patologia del disco.</p>
+          </div>
+        </div>
+        <div class="mt-5 flex items-center justify-between">
+          <span class="text-xs text-zinc-400">7 step • ~5 min</span>
+          <button class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Avvia →</button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 opacity-60 cursor-not-allowed">
+        <span class="inline-flex items-center rounded-full bg-zinc-200 px-2.5 py-0.5 text-xs font-semibold text-zinc-500">Prossimamente</span>
+        <h2 class="mt-3 text-lg font-bold text-zinc-500">RM Encefalo</h2>
+        <p class="mt-1 text-sm text-zinc-400">Valutazione per cefalea, epilessia e patologia neurologica.</p>
+      </div>
+
+      <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 opacity-60 cursor-not-allowed">
+        <span class="inline-flex items-center rounded-full bg-zinc-200 px-2.5 py-0.5 text-xs font-semibold text-zinc-500">Prossimamente</span>
+        <h2 class="mt-3 text-lg font-bold text-zinc-500">TC Torace</h2>
+        <p class="mt-1 text-sm text-zinc-400">Valutazione appropriatezza per patologia polmonare e mediastinica.</p>
+      </div>
+    </div>
+
+    <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <h3 class="text-sm font-semibold text-zinc-700 mb-3">Ultime richieste</h3>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-sm py-1.5 border-b border-zinc-100">
+          <span class="font-mono font-semibold text-zinc-800">RIS-2024-0041</span>
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-red-600 text-white">Emergenza</span>
+          <span class="text-xs text-zinc-500">07/04/2026, 09:14</span>
+          <button onclick="showTab('detail')" class="text-xs text-sky-700 hover:underline">Vedi →</button>
+        </div>
+        <div class="flex items-center justify-between text-sm py-1.5 border-b border-zinc-100">
+          <span class="font-mono font-semibold text-zinc-800">RIS-2024-0038</span>
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">Urgente diff.</span>
+          <span class="text-xs text-zinc-500">06/04/2026, 14:30</span>
+          <button class="text-xs text-sky-700 hover:underline">Vedi →</button>
+        </div>
+        <div class="flex items-center justify-between text-sm py-1.5">
+          <span class="font-mono font-semibold text-zinc-800">RIS-2024-0039</span>
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Da valutare</span>
+          <span class="text-xs text-zinc-500">05/04/2026, 11:20</span>
+          <button class="text-xs text-sky-700 hover:underline">Vedi →</button>
+        </div>
+      </div>
+      <button onclick="showTab('worklist')" class="mt-4 text-xs font-semibold text-sky-700 hover:underline">Vedi tutta la worklist →</button>
+    </div>
+  </main>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    const idx = ['worklist','detail','form-end','dashboard'].indexOf(name);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>

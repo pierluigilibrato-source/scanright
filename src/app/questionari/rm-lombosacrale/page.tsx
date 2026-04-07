@@ -4,8 +4,28 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { evaluateRmLombosacraleAppropriateness } from "@/lib/rm-lombosacrale-rules";
+import { evaluateRmLombosacraleAppropriateness, type AppropriatenessResult, type UrgencyLevel } from "@/lib/rm-lombosacrale-rules";
 import type { RmLombosacraleInput } from "@/lib/schema";
+
+const URGENCY_LABEL: Record<UrgencyLevel, string> = {
+  emergenza: "Emergenza",
+  urgente_differibile: "Urgente differibile",
+  da_valutare: "Da valutare",
+  non_urgente: "Non urgente",
+};
+
+const URGENCY_BADGE: Record<UrgencyLevel, string> = {
+  emergenza: "bg-red-600 text-white",
+  urgente_differibile: "bg-orange-100 text-orange-800 border border-orange-200",
+  da_valutare: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+  non_urgente: "bg-zinc-100 text-zinc-500 border border-zinc-200",
+};
+
+const LEVEL_BADGE: Record<string, string> = {
+  appropriata: "bg-red-100 text-red-800 border border-red-200",
+  "da rivalutare": "bg-amber-100 text-amber-800 border border-amber-200",
+  "non appropriata": "bg-zinc-100 text-zinc-600 border border-zinc-200",
+};
 
 type FormState = RmLombosacraleInput;
 
@@ -73,6 +93,9 @@ export default function RmLombosacralePage() {
   const [simpleLanguage, setSimpleLanguage] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submittedResult, setSubmittedResult] = useState<AppropriatenessResult | null>(null);
+  const [submittedCode, setSubmittedCode] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const preview = useMemo(() => evaluateRmLombosacraleAppropriateness(form), [form]);
@@ -123,7 +146,9 @@ export default function RmLombosacralePage() {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setMessage("Questionario inviato e report PDF generato.");
+      setSubmittedResult(preview);
+      setSubmittedCode(form.patientCode);
+      setSubmitted(true);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Errore inatteso");
     } finally {
@@ -137,6 +162,64 @@ export default function RmLombosacralePage() {
     router.push("/login");
     router.refresh();
   };
+
+  if (submitted && submittedResult) {
+    return (
+      <main className="mx-auto w-full max-w-2xl px-6 py-16">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+            <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-zinc-900">Questionario inviato</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            Il report PDF è stato generato e scaricato automaticamente.
+            Puoi ritrovarlo nella worklist in qualsiasi momento.
+          </p>
+
+          <div className="mt-6 rounded-xl border border-sky-100 bg-sky-50 p-5 text-left">
+            <p className="text-xs font-bold uppercase tracking-widest text-sky-700 mb-3">Valutazione — {submittedCode}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-full px-3 py-1 text-sm font-bold ${URGENCY_BADGE[submittedResult.urgency]}`}>
+                {URGENCY_LABEL[submittedResult.urgency]}
+              </span>
+              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${LEVEL_BADGE[submittedResult.level] ?? ""}`}>
+                {submittedResult.level.charAt(0).toUpperCase() + submittedResult.level.slice(1)}
+              </span>
+              <span className="text-sm font-semibold text-sky-900">Score {submittedResult.score}/100</span>
+            </div>
+            <p className="mt-3 text-sm text-zinc-700">{submittedResult.recommendation}</p>
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+            <Link
+              href="/worklist"
+              className="rounded-lg bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800"
+            >
+              Vedi Worklist
+            </Link>
+            <button
+              onClick={() => {
+                setSubmitted(false);
+                setSubmittedResult(null);
+                setStep(0);
+              }}
+              className="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Nuovo questionario
+            </button>
+            <Link
+              href="/dashboard"
+              className="rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -490,7 +573,7 @@ export default function RmLombosacralePage() {
             )}
           </div>
 
-          {message ? <p className="rounded-lg bg-zinc-100 px-3 py-2 text-sm">{message}</p> : null}
+          {message ? <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">{message}</p> : null}
         </form>
 
         <aside className="h-fit rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs lg:sticky lg:top-6">
