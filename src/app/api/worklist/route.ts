@@ -44,7 +44,7 @@ export async function GET() {
 
   if (error) {
     return NextResponse.json(
-      { error: "Errore recupero dati worklist" },
+      { error: `Errore database: ${error.message}` },
       { status: 500 },
     );
   }

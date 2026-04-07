@@ -17,8 +17,7 @@ export async function GET(
   }
 
   const { id } = await params;
-  const numericId = Number(id);
-  if (!Number.isInteger(numericId) || numericId <= 0) {
+  if (!id || typeof id !== "string" || id.trim().length === 0) {
     return NextResponse.json({ error: "ID non valido" }, { status: 400 });
   }
 
@@ -33,7 +32,7 @@ export async function GET(
   const { data, error } = await supabase
     .from("anamnesi_rm_lombosacrale")
     .select("*")
-    .eq("id", numericId)
+    .eq("id", id)
     .single();
 
   if (error || !data) {

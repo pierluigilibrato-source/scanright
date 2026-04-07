@@ -7,7 +7,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { RmLombosacraleInput } from "@/lib/schema";
 
 type RecordDetail = {
-  id: number;
+  id: string;
   patient_code: string;
   patient_age: number;
   radiologist_email: string;

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 type UrgencyLevel = "emergenza" | "urgente_differibile" | "da_valutare" | "non_urgente";
 
 type WorklistEntry = {
-  id: number;
+  id: string;
   patient_code: string;
   appropriateness_level: string;
   appropriateness_score: number;
@@ -79,7 +79,10 @@ export default function WorklistPage() {
   useEffect(() => {
     fetch("/api/worklist")
       .then(async (res) => {
-        if (!res.ok) throw new Error("Errore caricamento worklist");
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({})) as { error?: string };
+          throw new Error(payload.error ?? `Errore HTTP ${res.status}`);
+        }
         return res.json() as Promise<WorklistEntry[]>;
       })
       .then(setEntries)
@@ -147,8 +150,16 @@ export default function WorklistPage() {
         )}
 
         {!loading && error && (
-          <div className="flex items-center justify-center py-16 text-sm text-red-600">
-            {error}
+          <div className="flex flex-col items-center justify-center py-16 gap-2">
+            <p className="text-sm font-semibold text-red-600">{error}</p>
+            {error.toLowerCase().includes("configurato") && (
+              <p className="text-xs text-zinc-500 max-w-sm text-center">
+                Le variabili d&apos;ambiente Supabase non sono configurate su Vercel.
+                Aggiungi <code className="bg-zinc-100 px-1 rounded">SUPABASE_URL</code> e{" "}
+                <code className="bg-zinc-100 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code> nelle
+                impostazioni del progetto.
+              </p>
+            )}
           </div>
         )}
 
