@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { SESSION_COOKIE_NAME, readSessionToken } from "@/lib/auth";
+import type { UrgencyLevel } from "@/lib/rm-lombosacrale-rules";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -11,6 +12,13 @@ const LEVEL_PRIORITY: Record<string, number> = {
   "da rivalutare": 1,
   "non appropriata": 2,
 };
+
+function deriveUrgency(level: string, score: number): UrgencyLevel {
+  if (score >= 95) return "emergenza";
+  if (level === "appropriata") return "urgente_differibile";
+  if (level === "da rivalutare") return "da_valutare";
+  return "non_urgente";
+}
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -41,11 +49,21 @@ export async function GET() {
     );
   }
 
-  const sorted = (data ?? []).sort((a, b) => {
-    const levelDiff =
-      (LEVEL_PRIORITY[a.appropriateness_level] ?? 9) -
-      (LEVEL_PRIORITY[b.appropriateness_level] ?? 9);
-    if (levelDiff !== 0) return levelDiff;
+  const URGENCY_PRIORITY: Record<UrgencyLevel, number> = {
+    emergenza: 0,
+    urgente_differibile: 1,
+    da_valutare: 2,
+    non_urgente: 3,
+  };
+
+  const withUrgency = (data ?? []).map((row) => ({
+    ...row,
+    urgency: deriveUrgency(row.appropriateness_level, row.appropriateness_score ?? 0),
+  }));
+
+  const sorted = withUrgency.sort((a, b) => {
+    const urgencyDiff = URGENCY_PRIORITY[a.urgency] - URGENCY_PRIORITY[b.urgency];
+    if (urgencyDiff !== 0) return urgencyDiff;
     return (b.appropriateness_score ?? 0) - (a.appropriateness_score ?? 0);
   });
 

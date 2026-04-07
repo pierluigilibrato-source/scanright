@@ -4,36 +4,58 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type UrgencyLevel = "emergenza" | "urgente_differibile" | "da_valutare" | "non_urgente";
+
 type WorklistEntry = {
   id: number;
   patient_code: string;
   appropriateness_level: string;
   appropriateness_score: number;
+  urgency: UrgencyLevel;
   recommendation: string;
   created_at: string;
 };
 
 const LEVEL_CONFIG: Record<
   string,
-  { label: string; badgeClass: string; rowClass: string; order: number }
+  { label: string; badgeClass: string; rowClass: string }
 > = {
   appropriata: {
     label: "Appropriata",
     badgeClass: "bg-red-100 text-red-800 border border-red-200",
     rowClass: "border-l-4 border-l-red-400",
-    order: 0,
   },
   "da rivalutare": {
     label: "Da rivalutare",
     badgeClass: "bg-amber-100 text-amber-800 border border-amber-200",
     rowClass: "border-l-4 border-l-amber-400",
-    order: 1,
   },
   "non appropriata": {
     label: "Non appropriata",
     badgeClass: "bg-zinc-100 text-zinc-600 border border-zinc-200",
     rowClass: "border-l-4 border-l-zinc-300",
-    order: 2,
+  },
+};
+
+const URGENCY_CONFIG: Record<
+  UrgencyLevel,
+  { label: string; badgeClass: string }
+> = {
+  emergenza: {
+    label: "Emergenza",
+    badgeClass: "bg-red-600 text-white",
+  },
+  urgente_differibile: {
+    label: "Urgente differibile",
+    badgeClass: "bg-orange-100 text-orange-800 border border-orange-200",
+  },
+  da_valutare: {
+    label: "Da valutare",
+    badgeClass: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+  },
+  non_urgente: {
+    label: "Non urgente",
+    badgeClass: "bg-zinc-100 text-zinc-500 border border-zinc-200",
   },
 };
 
@@ -104,7 +126,7 @@ export default function WorklistPage() {
 
       {/* Legend */}
       <div className="mt-6 flex flex-wrap gap-3">
-        {Object.entries(LEVEL_CONFIG).map(([key, cfg]) => (
+        {Object.entries(URGENCY_CONFIG).map(([key, cfg]) => (
           <span
             key={key}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${cfg.badgeClass}`}
@@ -113,7 +135,7 @@ export default function WorklistPage() {
           </span>
         ))}
         <span className="text-xs text-zinc-400 self-center ml-1">
-          — ordinamento: appropriata prima, poi score decrescente
+          — ordinamento: emergenza prima, poi score decrescente
         </span>
       </div>
 
@@ -150,7 +172,8 @@ export default function WorklistPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                  <th className="px-4 py-3">Priorità</th>
+                  <th className="px-4 py-3">Urgenza</th>
+                  <th className="px-4 py-3">Appropriatezza</th>
                   <th className="px-4 py-3">Codice paziente</th>
                   <th className="px-4 py-3 text-center">Score</th>
                   <th className="px-4 py-3">Raccomandazione</th>
@@ -159,20 +182,29 @@ export default function WorklistPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {entries.map((entry, idx) => {
-                  const cfg =
+                {entries.map((entry) => {
+                  const levelCfg =
                     LEVEL_CONFIG[entry.appropriateness_level] ??
                     LEVEL_CONFIG["non appropriata"];
+                  const urgencyCfg =
+                    URGENCY_CONFIG[entry.urgency] ?? URGENCY_CONFIG["non_urgente"];
                   return (
                     <tr
                       key={entry.id}
-                      className={`hover:bg-zinc-50 transition-colors ${cfg.rowClass} ${idx === 0 ? "" : ""}`}
+                      className={`hover:bg-zinc-50 transition-colors ${levelCfg.rowClass}`}
                     >
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.badgeClass}`}
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${urgencyCfg.badgeClass}`}
                         >
-                          {cfg.label}
+                          {urgencyCfg.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelCfg.badgeClass}`}
+                        >
+                          {levelCfg.label}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold text-zinc-800">

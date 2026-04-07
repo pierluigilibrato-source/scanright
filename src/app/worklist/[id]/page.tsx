@@ -24,6 +24,22 @@ const LEVEL_CONFIG: Record<string, { label: string; cls: string }> = {
   "non appropriata": { label: "Non appropriata", cls: "bg-zinc-100 text-zinc-600 border border-zinc-200" },
 };
 
+type UrgencyLevel = "emergenza" | "urgente_differibile" | "da_valutare" | "non_urgente";
+
+const URGENCY_CONFIG: Record<UrgencyLevel, { label: string; cls: string }> = {
+  emergenza: { label: "Emergenza", cls: "bg-red-600 text-white" },
+  urgente_differibile: { label: "Urgente differibile", cls: "bg-orange-100 text-orange-800 border border-orange-200" },
+  da_valutare: { label: "Da valutare", cls: "bg-yellow-100 text-yellow-800 border border-yellow-200" },
+  non_urgente: { label: "Non urgente", cls: "bg-zinc-100 text-zinc-500 border border-zinc-200" },
+};
+
+function deriveUrgency(level: string, score: number): UrgencyLevel {
+  if (score >= 95) return "emergenza";
+  if (level === "appropriata") return "urgente_differibile";
+  if (level === "da rivalutare") return "da_valutare";
+  return "non_urgente";
+}
+
 const SYSTEMIC_LABEL: Record<string, string> = {
   oncologica: "Oncologica",
   infettiva: "Infettiva",
@@ -155,6 +171,8 @@ export default function WorklistDetailPage() {
 
   const q = record?.questionnaire_payload;
   const lvl = record ? (LEVEL_CONFIG[record.appropriateness_level] ?? LEVEL_CONFIG["non appropriata"]) : null;
+  const urgency = record ? deriveUrgency(record.appropriateness_level, record.appropriateness_score) : null;
+  const urgencyCfg = urgency ? URGENCY_CONFIG[urgency] : null;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-10">
@@ -216,7 +234,12 @@ export default function WorklistDetailPage() {
           {/* Valutazione */}
           <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5">
             <div className="flex flex-wrap items-center gap-3">
-              <span className={`rounded-full px-3 py-1 text-sm font-bold ${lvl?.cls}`}>
+              {urgencyCfg && (
+                <span className={`rounded-full px-3 py-1 text-sm font-bold ${urgencyCfg.cls}`}>
+                  {urgencyCfg.label}
+                </span>
+              )}
+              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${lvl?.cls}`}>
                 {lvl?.label}
               </span>
               <span className="text-sm font-semibold text-sky-900">

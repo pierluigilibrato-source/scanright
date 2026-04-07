@@ -5,8 +5,15 @@ export type AppropriatenessLevel =
   | "da rivalutare"
   | "non appropriata";
 
+export type UrgencyLevel =
+  | "emergenza"
+  | "urgente_differibile"
+  | "da_valutare"
+  | "non_urgente";
+
 export type AppropriatenessResult = {
   level: AppropriatenessLevel;
+  urgency: UrgencyLevel;
   score: number;
   reasons: string[];
   recommendation: string;
@@ -46,6 +53,7 @@ export function evaluateRmLombosacraleAppropriateness(
   if (redFlags.length > 0) {
     return {
       level: "appropriata",
+      urgency: "emergenza",
       score: 95,
       reasons: [
         "Presenza di red flags cliniche che indicano imaging rapido",
@@ -96,6 +104,7 @@ export function evaluateRmLombosacraleAppropriateness(
   if (score >= 70) {
     return {
       level: "appropriata",
+      urgency: "urgente_differibile",
       score,
       reasons,
       recommendation:
@@ -106,6 +115,7 @@ export function evaluateRmLombosacraleAppropriateness(
   if (score >= 40) {
     return {
       level: "da rivalutare",
+      urgency: "da_valutare",
       score,
       reasons,
       recommendation:
@@ -115,6 +125,7 @@ export function evaluateRmLombosacraleAppropriateness(
 
   return {
     level: "non appropriata",
+    urgency: "non_urgente",
     score,
     reasons,
     recommendation:
